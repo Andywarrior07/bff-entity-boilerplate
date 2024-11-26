@@ -1,6 +1,6 @@
 {
   "name": "bff-entity-boilerplate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI to generate a file structure for an entity, based on an entity name.",
   "main": "dist/index.js",
   "type": "module",
@@ -11,12 +11,20 @@
     "build": "tsc",
     "start": "ts-node src/index.ts"
   },
-  "keywords": ["cli", "nodejs", "bff-entity"],
+  "keywords": [
+    "cli",
+    "nodejs",
+    "bff-entity"
+  ],
   "author": "Andres Guerrero",
   "license": "MIT",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.9.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0"
   }
 }

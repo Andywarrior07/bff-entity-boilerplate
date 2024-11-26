@@ -1,38 +1,69 @@
 #!/usr/bin/env node
 import * as fs from 'fs';
+import * as fse from 'fs-extra';
 import * as path from 'path';
-function createFile(filePath) {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, '', 'utf8');
-}
-function createStructure(basePath, name) {
-    const singularName = name.slice(0, -1);
-    const structure = [
-        `${name}/${name}.module.ts`,
-        `${name}/controllers/${name}.controller.ts`,
-        `${name}/controllers/dtos/create.dto.ts`,
-        `${name}/controllers/dtos/update.dto.ts`,
-        `${name}/infraestructure/external-services/http/external-${name}.service.ts`,
-        `${name}/infraestructure/external-services/tokens/repository.token.ts`,
-        `${name}/interfaces/${singularName}.interface.ts`,
-        `${name}/services/${name}.service.ts`,
-    ];
-    structure.forEach(file => {
-        const filePath = path.join(basePath, file);
-        createFile(filePath);
-        console.log(`Created: ${filePath}`);
-    });
-}
-// Main function
-function main() {
+const isPlural = (word) => word.endsWith('s');
+const getSingularName = (word) => (isPlural(word) ? word.slice(0, -1) : word);
+const createStructure = async (basePath, entityName) => {
+    const singularName = getSingularName(entityName);
+    const structure = {
+        [`${entityName}`]: {
+            [`${entityName}.module.ts`]: '',
+            controllers: {
+                [`${entityName}.controller.ts`]: '',
+                dtos: {
+                    [`create.dto.ts`]: '',
+                    [`update.dto.ts`]: '',
+                },
+            },
+            infraestructure: {
+                'external-services': {
+                    http: {
+                        [`external-${entityName}.service.ts`]: '',
+                    },
+                    tokens: {
+                        [`repository.token.ts`]: '',
+                    },
+                },
+            },
+            interfaces: {
+                [`${singularName}.interface.ts`]: '',
+            },
+            services: {
+                [`${entityName}.service.ts`]: '',
+            },
+        },
+    };
+    const createFiles = async (currentPath, obj) => {
+        for (const [key, value] of Object.entries(obj)) {
+            const newPath = path.join(currentPath, key);
+            if (typeof value === 'string') {
+                await fse.outputFile(newPath, value);
+            }
+            else {
+                await fse.ensureDir(newPath);
+                await createFiles(newPath, value);
+            }
+        }
+    };
+    await createFiles(basePath, structure);
+};
+const main = async () => {
     const args = process.argv.slice(2);
     if (args.length !== 1) {
-        console.error('Usage: create-structure <name>');
+        console.error('Usage: create-structure <entity-name>');
         process.exit(1);
     }
-    const name = args[0];
-    const basePath = process.cwd();
-    createStructure(basePath, name);
-}
+    const entityName = args[0];
+    const basePath = fs.existsSync('./src') ? './src' : '.';
+    try {
+        console.log(`Generating structure for "${entityName}" inside ${basePath}...`);
+        await createStructure(basePath, entityName);
+        console.log('Structure generated successfully!');
+    }
+    catch (err) {
+        console.error('Error generating structure:', err);
+    }
+};
 main();
 //# sourceMappingURL=index.js.map
