@@ -13,29 +13,88 @@ const createStructure = async (basePath: string, entityName: string) => {
 
   const structure = {
     [`${entityName}`]: {
-      [`${entityName}.module.ts`]: '',
+      [`${entityName}.module.ts`]: `import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
+import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service } from './services/${entityName}.service';
+import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller } from './controllers/${entityName}.controller';
+import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
+
+@Module({
+  imports: [HttpModule],
+  controllers: [${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller],
+  providers: [
+    ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service,
+    {
+      provide: ${entityName.toUpperCase()}_PORT,
+      useClass: External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service,
+    }
+  ],
+})
+export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Module {}
+`,
       controllers: {
-        [`${entityName}.controller.ts`]: '',
+        [`${entityName}.controller.ts`]: `import { Controller} from '@nestjs/common';
+import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service } from '../services/${entityName}.service';
+
+@Controller('${entityName}')
+export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller {
+  constructor(private readonly service: ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service) {}
+}
+`,
         dtos: {
-          [`create.dto.ts`]: '',
-          [`update.dto.ts`]: '',
+          [`create.dto.ts`]: `export class Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto {}
+`,
+          [`update.dto.ts`]: `import { PartialType } from '@nestjs/mapped-types';
+import { Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from './create.dto';
+
+export class Update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto extends PartialType(Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto){}
+`,
         },
       },
-      infraestructure: {
+      infrastructure: {
         'external-services': {
           http: {
-            [`external-${entityName}.service.ts`]: '',
+            [`external-${entityName}.service.ts`]: `import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+
+@Injectable()
+export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service implements ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>{
+  constructor(
+      private readonly http: HttpService,
+      private readonly configService: ConfigService,
+  ) {}
+}
+`,
           },
           tokens: {
-            [`repository.token.ts`]: '',
+            [`repository.token.ts`]: `export const ${entityName.toUpperCase()}_PORT = Symbol('${entityName.toUpperCase()}_PORT');
+`,
           },
         },
       },
       interfaces: {
-        [`${singularName}.interface.ts`]: '',
+        [`${singularName}.interface.ts`]: `export interface ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} {}
+
+export interface ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity extends ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} {}
+`,
       },
       services: {
-        [`${entityName}.service.ts`]: '',
+        [`${entityName}.service.ts`]: `import { Inject, Injectable } from '@nestjs/common';
+import { Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from '../controllers/dtos/create.dto';
+import { Update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from '../controllers/dtos/update.dto';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}} from '../interfaces/${singularName}.interface';
+
+@Injectable()
+export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service {
+  constructor(
+    @Inject(${entityName.toUpperCase()}_PORT)
+    private readonly externalService: External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
+  ) {}
+}
+`,
       },
     },
   };
