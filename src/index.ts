@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 
-// Convierte nombres con guiones a PascalCase
 const toPascalCase = (word: string) =>
   word
     .split('-')
@@ -101,7 +100,7 @@ import type { ${singularPascal}Entity, ${singularPascal} } from '../interfaces/$
 export class ${entityPascal}Service {
   constructor(
     @Inject(${entityName.toUpperCase().replace(/-/g, '_')}_PORT)
-    private readonly externalService: External${entityPascal}Service<${singularPascal}Entity, ${singularPascal}>,
+    private readonly externalService: ExternalService<${singularPascal}Entity, ${singularPascal}>,
   ) {}
 }
 `,
