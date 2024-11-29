@@ -14,16 +14,25 @@ const createStructure = async (
 ) => {
   const singularName = getSingularName(entityName);
   const pascalCaseEntity = toPascalCase(entityName);
+
   const structure = {
     [`${entityName}`]: {
       [`${entityName}.module.ts`]: options.code
         ? `import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { ${pascalCaseEntity}Service } from './services/${entityName}.service';
 import { ${pascalCaseEntity}Controller } from './controllers/${entityName}.controller';
+import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
 
 @Module({
   controllers: [${pascalCaseEntity}Controller],
-  providers: [${pascalCaseEntity}Service],
+  providers: [
+    ${pascalCaseEntity}Service,
+    {
+      provide: ${entityName.toUpperCase()}_PORT,
+      useClass: External${pascalCaseEntity}Service,
+    }
+  ],
 })
 export class ${pascalCaseEntity}Module {}
 `
@@ -40,8 +49,8 @@ export class ${pascalCaseEntity}Controller {
 `
           : '',
         dtos: {
-          [`create.dto.ts`]: options.code ? `export class Create${pascalCaseEntity}Dto {}` : '',
-          [`update.dto.ts`]: options.code
+          [`create-${singularName}.dto.ts`]: options.code ? `export class Create${pascalCaseEntity}Dto {}` : '',
+          [`update-${singularName}.dto.ts`]: options.code
             ? `import { PartialType } from '@nestjs/mapped-types';
 import { Create${pascalCaseEntity}Dto } from './create.dto';
 
@@ -50,12 +59,43 @@ export class Update${pascalCaseEntity}Dto extends PartialType(Create${pascalCase
             : '',
         },
       },
-      services: {
-        [`${entityName}.service.ts`]: options.code
-          ? `import { Injectable } from '@nestjs/common';
+      infrastructure: {
+        'external-services': {
+          http: {
+            [`external-${entityName}.service.ts`]: `import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
-export class ${pascalCaseEntity}Service {}
+export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service implements ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>{
+  constructor(
+      private readonly http: HttpService,
+      private readonly configService: ConfigService,
+  ) {}
+}
+`,
+          },
+          tokens: {
+            [`repository.token.ts`]: `export const ${entityName.toUpperCase()}_PORT = Symbol('${entityName.toUpperCase()}_PORT');
+`,
+          },
+        },
+      },
+      services: {
+        [`${entityName}.service.ts`]: options.code
+          ? `import { Inject, Injectable } from '@nestjs/common';
+import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+
+@Injectable()
+export class ${pascalCaseEntity}Service {
+  constructor(
+    @Inject(${entityName.toUpperCase()}_PORT)
+    private readonly externalService: ExternalService<{singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
+  ) {}
+}
 `
           : '',
       },

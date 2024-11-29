@@ -37,8 +37,7 @@ bff-entity <entity-name> [options]
 ### Options
 
 - `--help, -h`: Displays the help menu with all commands and their descriptions.
-- `--no-code`: Generates only the folder structure without any boilerplate code.
-- `--no-code, -n`: Create the structure without code in files
+- `--no-code, -n`: Generates only the folder structure without any boilerplate code.
 - `--with-tests, -t`: Generate test files
 - `--path, -p <path>`: Specify the base directory (default: ./src)
 
