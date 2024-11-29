@@ -4,50 +4,59 @@ import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 
+// Convierte nombres con guiones a PascalCase
+const toPascalCase = (word: string) =>
+  word
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+
 const isPlural = (word: string) => word.endsWith('s');
 
 const getSingularName = (word: string) => (isPlural(word) ? word.slice(0, -1) : word);
 
 const createStructure = async (basePath: string, entityName: string) => {
   const singularName = getSingularName(entityName);
+  const entityPascal = toPascalCase(entityName);
+  const singularPascal = toPascalCase(singularName);
 
   const structure = {
     [`${entityName}`]: {
       [`${entityName}.module.ts`]: `import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service } from './services/${entityName}.service';
-import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller } from './controllers/${entityName}.controller';
-import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import { ${entityPascal}Service } from './services/${entityName}.service';
+import { ${entityPascal}Controller } from './controllers/${entityName}.controller';
+import { ${entityName.toUpperCase().replace(/-/g, '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
 
 @Module({
   imports: [HttpModule],
-  controllers: [${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller],
+  controllers: [${entityPascal}Controller],
   providers: [
-    ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service,
+    ${entityPascal}Service,
     {
-      provide: ${entityName.toUpperCase()}_PORT,
-      useClass: External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service,
+      provide: ${entityName.toUpperCase().replace(/-/g, '_')}_PORT,
+      useClass: External${entityPascal}Service,
     }
   ],
 })
-export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Module {}
+export class ${entityPascal}Module {}
 `,
       controllers: {
-        [`${entityName}.controller.ts`]: `import { Controller} from '@nestjs/common';
-import { ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service } from '../services/${entityName}.service';
+        [`${entityName}.controller.ts`]: `import { Controller } from '@nestjs/common';
+import { ${entityPascal}Service } from '../services/${entityName}.service';
 
 @Controller('${entityName}')
-export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Controller {
-  constructor(private readonly service: ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service) {}
+export class ${entityPascal}Controller {
+  constructor(private readonly service: ${entityPascal}Service) {}
 }
 `,
         dtos: {
-          [`create.dto.ts`]: `export class Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto {}
+          [`create.dto.ts`]: `export class Create${singularPascal}Dto {}
 `,
           [`update.dto.ts`]: `import { PartialType } from '@nestjs/mapped-types';
-import { Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from './create.dto';
+import { Create${singularPascal}Dto } from './create.dto';
 
-export class Update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto extends PartialType(Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto){}
+export class Update${singularPascal}Dto extends PartialType(Create${singularPascal}Dto) {}
 `,
         },
       },
@@ -58,10 +67,10 @@ export class Update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dt
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+import type { ${singularPascal}Entity, ${singularPascal} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
-export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service implements ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>{
+export class External${entityPascal}Service {
   constructor(
       private readonly http: HttpService,
       private readonly configService: ConfigService,
@@ -70,28 +79,29 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
 `,
           },
           tokens: {
-            [`repository.token.ts`]: `export const ${entityName.toUpperCase()}_PORT = Symbol('${entityName.toUpperCase()}_PORT');
+            [`repository.token.ts`]: `export const ${entityName.toUpperCase().replace(/-/g, '_')}_PORT = Symbol('${entityName.toUpperCase().replace(/-/g, '_')}_PORT');
 `,
           },
         },
       },
       interfaces: {
-        [`${singularName}.interface.ts`]: `export interface ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} {}
+        [`${singularName}.interface.ts`]: `export interface ${singularPascal} {}
 
-export interface ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity extends ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} {}
+export interface ${singularPascal}Entity extends ${singularPascal} {}
 `,
       },
       services: {
         [`${entityName}.service.ts`]: `import { Inject, Injectable } from '@nestjs/common';
-import { Create${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from '../controllers/dtos/create.dto';
-import { Update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Dto } from '../controllers/dtos/update.dto';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}} from '../interfaces/${singularName}.interface';
+import { Create${singularPascal}Dto } from '../controllers/dtos/create.dto';
+import { Update${singularPascal}Dto } from '../controllers/dtos/update.dto';
+import { ${entityName.toUpperCase().replace(/-/g, '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import type { ${singularPascal}Entity, ${singularPascal} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
-export class ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service {
+export class ${entityPascal}Service {
   constructor(
-    @Inject(${entityName.toUpperCase()}_PORT)
-    private readonly externalService: External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
+    @Inject(${entityName.toUpperCase().replace(/-/g, '_')}_PORT)
+    private readonly externalService: External${entityPascal}Service<${singularPascal}Entity, ${singularPascal}>,
   ) {}
 }
 `,
