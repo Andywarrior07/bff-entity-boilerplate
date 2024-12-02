@@ -32,17 +32,19 @@ const createStructure = async (
         ? `import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ${pascalCaseEntity}Service } from './services/${entityName}.service';
+import { External${pascalCaseEntity}Service } from './infrastructure/external-services/http/external-${entityName}.service';
 import { ${pascalCaseEntity}Controller } from './controllers/${entityName}.controller';
 import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
 
 @Module({
+  imports: [HttpModule],
   controllers: [${pascalCaseEntity}Controller],
   providers: [
     ${pascalCaseEntity}Service,
     {
       provide: ${entityName.toUpperCase().replace('-', '_')}_PORT,
       useClass: External${pascalCaseEntity}Service,
-    }
+    },
   ],
 })
 export class ${pascalCaseEntity}Module {}
