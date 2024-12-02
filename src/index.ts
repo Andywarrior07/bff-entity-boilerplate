@@ -3,12 +3,12 @@
 import { fileURLToPath } from 'url';
 import * as path from 'path';
 import fse from 'fs-extra';
-// TODO: Falta probar que muestre la version, mostraba error en readJsonSync
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const getCurrentVersion = (): string => {
-  const packageJsonPath = path.resolve(__dirname, 'package.json');
+  const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
   const packageJson = fse.readJsonSync(packageJsonPath);
 
   return packageJson.version;
