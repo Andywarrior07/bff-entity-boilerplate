@@ -34,7 +34,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ${pascalCaseEntity}Service } from './services/${entityName}.service';
 import { External${pascalCaseEntity}Service } from './infrastructure/external-services/http/external-${entityName}.service';
 import { ${pascalCaseEntity}Controller } from './controllers/${entityName}.controller';
-import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from '@/${entityName}/infrastructure/external-services/tokens/repository.token';
 
 @Module({
   imports: [HttpModule],
@@ -99,7 +99,7 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
       services: {
         [`${entityName}.service.ts`]: options.code
           ? `import { Inject, Injectable } from '@nestjs/common';
-import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from '@/${entityName}/infrastructure/external-services/tokens/repository.token';
 import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
