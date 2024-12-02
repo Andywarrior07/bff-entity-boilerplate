@@ -31,9 +31,9 @@ const createStructure = async (
       [`${entityName}.module.ts`]: options.code
         ? `import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { ${pascalCaseEntity}Service } from './services/${entityName}.service';
-import { External${pascalCaseEntity}Service } from './infrastructure/external-services/http/external-${entityName}.service';
-import { ${pascalCaseEntity}Controller } from './controllers/${entityName}.controller';
+import { ${pascalCaseEntity}Service } from '@/${entityName}/services/${entityName}.service';
+import { External${pascalCaseEntity}Service } from '@/${entityName}/infrastructure/external-services/http/external-${entityName}.service';
+import { ${pascalCaseEntity}Controller } from '@/${entityName}/controllers/${entityName}.controller';
 import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from '@/${entityName}/infrastructure/external-services/tokens/repository.token';
 
 @Module({
@@ -53,7 +53,7 @@ export class ${pascalCaseEntity}Module {}
       controllers: {
         [`${entityName}.controller.ts`]: options.code
           ? `import { Controller } from '@nestjs/common';
-import { ${pascalCaseEntity}Service } from '../services/${entityName}.service';
+import { ${pascalCaseEntity}Service } from '@/${entityName}/services/${entityName}.service';
 
 @Controller('${entityName}')
 export class ${pascalCaseEntity}Controller {
@@ -79,7 +79,7 @@ export class Update${pascalCaseEntity}Dto extends PartialType(Create${pascalCase
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '@/${entityName}/interfaces/${singularName}.interface';
 
 @Injectable()
 export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service implements ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>{
@@ -100,7 +100,7 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
         [`${entityName}.service.ts`]: options.code
           ? `import { Inject, Injectable } from '@nestjs/common';
 import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from '@/${entityName}/infrastructure/external-services/tokens/repository.token';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '@/${entityName}/interfaces/${singularName}.interface';
 
 @Injectable()
 export class ${pascalCaseEntity}Service {
@@ -123,7 +123,7 @@ export interface ${toPascalCase(singularName)}Entity extends ${toPascalCase(sing
       ...(options.tests && {
         tests: {
           [`${entityName}.controller.spec.ts`]: `import { Test, TestingModule } from '@nestjs/testing';
-import { ${pascalCaseEntity}Controller } from './${entityName}.controller';
+import { ${pascalCaseEntity}Controller } from '@/${entityName}/${entityName}.controller';
 
 describe('${pascalCaseEntity}Controller', () => {
   let controller: ${pascalCaseEntity}Controller;
