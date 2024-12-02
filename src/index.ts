@@ -1,7 +1,18 @@
 #!/usr/bin/env node
 
-import * as fse from 'fs-extra';
+import { fileURLToPath } from 'url';
 import * as path from 'path';
+import fse from 'fs-extra';
+// TODO: Falta probar que muestre la version, mostraba error en readJsonSync
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const getCurrentVersion = (): string => {
+  const packageJsonPath = path.resolve(__dirname, 'package.json');
+  const packageJson = fse.readJsonSync(packageJsonPath);
+
+  return packageJson.version;
+}
 
 const isPlural = (word: string) => word.endsWith('s');
 const getSingularName = (word: string) => (isPlural(word) ? word.slice(0, -1) : word);
@@ -22,14 +33,14 @@ const createStructure = async (
 import { HttpModule } from '@nestjs/axios';
 import { ${pascalCaseEntity}Service } from './services/${entityName}.service';
 import { ${pascalCaseEntity}Controller } from './controllers/${entityName}.controller';
-import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
 
 @Module({
   controllers: [${pascalCaseEntity}Controller],
   providers: [
     ${pascalCaseEntity}Service,
     {
-      provide: ${entityName.toUpperCase()}_PORT,
+      provide: ${entityName.toUpperCase().replace('-', '_')}_PORT,
       useClass: External${pascalCaseEntity}Service,
     }
   ],
@@ -78,7 +89,7 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
 `,
           },
           tokens: {
-            [`repository.token.ts`]: `export const ${entityName.toUpperCase()}_PORT = Symbol('${entityName.toUpperCase()}_PORT');
+            [`repository.token.ts`]: `export const ${entityName.toUpperCase().replace('-', '_')}_PORT = Symbol('${entityName.toUpperCase().replace('-', '_')}_PORT');
 `,
           },
         },
@@ -86,13 +97,13 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
       services: {
         [`${entityName}.service.ts`]: options.code
           ? `import { Inject, Injectable } from '@nestjs/common';
-import { ${entityName.toUpperCase()}_PORT } from './infrastructure/external-services/tokens/repository.token';
+import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
 import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
 export class ${pascalCaseEntity}Service {
   constructor(
-    @Inject(${entityName.toUpperCase()}_PORT)
+    @Inject(${entityName.toUpperCase().replace('-', '_')}_PORT)
     private readonly externalService: ExternalService<{singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
   ) {}
 }
@@ -160,7 +171,16 @@ Options:
   --no-code, -n      Create the structure without code in files
   --with-tests, -t   Generate test files
   --path, -p <path>  Specify the base directory (default: ./src)
+  --version, -v      Show current version installed
 `);
+    return;
+  }
+
+  if (args.includes('--version') || args.includes('-v')) {
+    const version = getCurrentVersion();
+
+    console.log(version);
+
     return;
   }
 

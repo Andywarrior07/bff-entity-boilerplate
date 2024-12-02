@@ -40,7 +40,7 @@ bff-entity <entity-name> [options]
 - `--no-code, -n`: Generates only the folder structure without any boilerplate code.
 - `--with-tests, -t`: Generate test files
 - `--path, -p <path>`: Specify the base directory (default: ./src)
-
+- `--version, -v`:      Show current version installed
 ### Example Commands
 
 1. Generate a complete structure with boilerplate code:
