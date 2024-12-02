@@ -79,7 +79,7 @@ export class Update${pascalCaseEntity}Dto extends PartialType(Create${pascalCase
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
 export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}Service implements ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>{
@@ -100,13 +100,13 @@ export class External${entityName.charAt(0).toUpperCase() + entityName.slice(1)}
         [`${entityName}.service.ts`]: options.code
           ? `import { Inject, Injectable } from '@nestjs/common';
 import { ${entityName.toUpperCase().replace('-', '_')}_PORT } from './infrastructure/external-services/tokens/repository.token';
-import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
+import type { ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)} } from '../interfaces/${singularName}.interface';
 
 @Injectable()
 export class ${pascalCaseEntity}Service {
   constructor(
     @Inject(${entityName.toUpperCase().replace('-', '_')}_PORT)
-    private readonly externalService: ExternalService<{singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
+    private readonly externalService: ExternalService<${singularName.charAt(0).toUpperCase() + singularName.slice(1)}Entity, ${singularName.charAt(0).toUpperCase() + singularName.slice(1)}>,
   ) {}
 }
 `
